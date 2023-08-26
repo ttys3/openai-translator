@@ -39,8 +39,10 @@ async function fetchWithStream(
     let response: Response | null = null
 
     try {
+        console.log("begin fetch: %o, options: %o", url, options)
         response = await fetch(url, { ...options, signal })
     } catch (error) {
+        console.log("fetch error: %o", error)
         if (error instanceof Error) {
             const { message, name } = error
             port.postMessage({
@@ -62,6 +64,7 @@ async function fetchWithStream(
 
     const reader = response?.body?.getReader()
     if (!reader) {
+        console.log("reader error return: %o", reader)
         port.postMessage(responseSend)
         return
     }
@@ -71,15 +74,19 @@ async function fetchWithStream(
         while (true) {
             const { done, value } = await reader.read()
             if (done) {
+                console.log("done: %o", done)
                 break
             }
+            // console.log("value: %o", value)
             const str = new TextDecoder().decode(value)
+            // console.log("str: %o", str)
             port.postMessage({
                 ...responseSend,
                 data: str,
             })
         }
     } catch (error) {
+        console.log("read error: %o", error)
         if (error instanceof Error) {
             const { message, name } = error
             port.postMessage({
@@ -87,6 +94,7 @@ async function fetchWithStream(
             })
         }
     } finally {
+        console.log("reader release")
         port.disconnect()
         reader.releaseLock()
     }

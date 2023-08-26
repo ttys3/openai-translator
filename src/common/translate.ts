@@ -503,6 +503,7 @@ Etymology:
 
     let finished = false // finished can be called twice because event.data is 1. "finish_reason":"stop"; 2. [DONE]
     if (settings.provider === 'ChatGPT') {
+        console.log("================================ fuck is web")
         let length = 0
         await fetchSSE(`${utils.defaultChatGPTWebAPI}/conversation`, {
             method: 'POST',
@@ -587,6 +588,7 @@ Etymology:
         })
     } else {
         const url = urlJoin(settings.apiURL, settings.apiURLPath)
+        console.log("================================ fuck is openai, url: %o", url)
         await fetchSSE(url, {
             method: 'POST',
             headers,
@@ -597,8 +599,10 @@ Etymology:
                 let resp
                 try {
                     resp = JSON.parse(msg)
+                    console.log("JSON.parse result: %o", resp)
                     // eslint-disable-next-line no-empty
-                } catch {
+                } catch(err) {
+                    console.log("JSON.parse err: %o", err)
                     query.onFinish('stop')
                     finished = true
                     return
@@ -606,10 +610,12 @@ Etymology:
 
                 const { choices } = resp
                 if (!choices || choices.length === 0) {
+                    console.log("-------------------- fuck no choice")
                     return { error: 'No result' }
                 }
                 const { finish_reason: finishReason } = choices[0]
                 if (finishReason) {
+                    console.log("------------ finishReason: %o", finishReason)
                     query.onFinish(finishReason)
                     finished = true
                     return
@@ -617,6 +623,7 @@ Etymology:
 
                 let targetTxt = ''
                 if (!isChatAPI) {
+                    console.log("fuck is azure: %o", isChatAPI)
                     // It's used for Azure OpenAI Service's legacy parameters.
                     targetTxt = choices[0].text
 
@@ -626,13 +633,17 @@ Etymology:
 
                     query.onMessage({ content: targetTxt, role: '', isWordMode })
                 } else {
+                    console.log("is openai")
                     const { content = '', role } = choices[0].delta
+
 
                     targetTxt = content
 
                     if (quoteProcessor) {
                         targetTxt = quoteProcessor.processText(targetTxt)
                     }
+                    console.log("xxxxxxx conetent: %o, targetTxt: %o, role: %o, isWordMode: %o",
+                    content, targetTxt, role, isWordMode)
 
                     query.onMessage({ content: targetTxt, role, isWordMode })
                 }

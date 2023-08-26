@@ -218,6 +218,7 @@ export async function fetchSSE(input: string, options: FetchSSEOptions) {
 
     const parser = createParser((event) => {
         if (event.type === 'event') {
+            console.log("onMessage handle event: %o", event)
             onMessage(event.data)
         }
     })
@@ -228,9 +229,12 @@ export async function fetchSSE(input: string, options: FetchSSEOptions) {
         while (true) {
             const { done, value } = await reader.read()
             if (done) {
+                console.log("done: %o", done)
                 break
             }
+            console.log("got value: %o", value)
             const str = new TextDecoder().decode(value)
+            console.log("got str to parse: %o", str)
             parser.feed(str)
         }
     } finally {
