@@ -275,7 +275,10 @@ pub fn build_window(builder: tauri::WindowBuilder) -> tauri::Window {
             .build()
             .unwrap();
 
-        set_shadow(&window, true).unwrap();
+        #[cfg(not(target_os = "linux"))]
+        {
+            set_shadow(&window, true).unwrap();
+        }
 
         post_process_window(&window);
 
